@@ -55,7 +55,7 @@ fn remove_game_over_ui(
     game_over_ui_entity: Option<Single<Entity, With<GameOverUI>>>,
 ) {
     if let Some(entity) = game_over_ui_entity {
-        commands.entity(*entity).despawn();
+        commands.entity(*entity).despawn_recursive();
     }
 }
 
