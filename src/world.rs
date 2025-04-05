@@ -1,5 +1,5 @@
-use bevy::prelude::*;
 use crate::gameplay::player::PLAYER_SIZE;
+use bevy::prelude::*;
 
 pub const WORLD_SIZE: f32 = 600.0;
 pub const WORLD_BOUNDARY_VECTOR: Vec3 = Vec3::new(
@@ -11,5 +11,5 @@ pub const WORLD_BOUNDARY_VECTOR: Vec3 = Vec3::new(
 pub enum State {
     #[default]
     Playing,
-    GameOver
+    GameOver,
 }
