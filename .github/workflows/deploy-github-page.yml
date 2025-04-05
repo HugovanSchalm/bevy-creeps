@@ -38,6 +38,7 @@ jobs:
     needs: build
     permissions:
       pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.artifacts.outputs.page_url }}
