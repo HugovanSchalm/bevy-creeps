@@ -8,7 +8,16 @@ use bevy_creeps::gameplay::GameplayPlugin;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(
+                WindowPlugin {
+                    primary_window: Some(Window {
+                        fit_canvas_to_parent: true,
+                        canvas: Some(String::from("#game")),
+                        ..Default::default()
+                    }),
+                    ..Default::default()
+                }
+        ))
         .add_plugins(UIPlugin)
         .add_plugins(GameplayPlugin)
         .init_state::<State>()

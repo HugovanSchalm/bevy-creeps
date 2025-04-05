@@ -1,0 +1,18 @@
+body {
+    background-color: black;
+    margin: 0;
+}
+
+#screenContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+}
+
+#gameContainer {
+    aspect-ratio: 1;
+    width: 100vmin;
+    height: 100vmin;
+}
