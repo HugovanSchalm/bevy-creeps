@@ -1,6 +1,7 @@
 body {
     background-color: black;
     margin: 0;
+    padding: 0;
 }
 
 #screenContainer {
@@ -9,10 +10,14 @@ body {
     align-items: center;
     width: 100vw;
     height: 100vh;
+    padding: 0;
+    margin: 0;
 }
 
 #gameContainer {
     aspect-ratio: 1;
-    width: 100vmin;
-    height: 100vmin;
+    width: 99vmin;
+    height: 99vmin;
+    padding: 0;
+    margin: 0;
 }

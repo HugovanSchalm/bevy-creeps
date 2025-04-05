@@ -13,6 +13,7 @@ fn main() {
                     primary_window: Some(Window {
                         fit_canvas_to_parent: true,
                         canvas: Some(String::from("#game")),
+                        prevent_default_event_handling: false,
                         ..Default::default()
                     }),
                     ..Default::default()
