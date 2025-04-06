@@ -1,6 +1,6 @@
 [package]
 name = "bevy-creeps"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 
 [profile.dev.package."*"]
@@ -8,6 +8,10 @@ opt-level = 3
 
 [profile.dev]
 opt-level = 1
+
+[profile.release]
+lto = true
+opt-level = 'z'
 
 [dependencies]
 bevy = { version = "0.15.3", features = ["wayland"] }
