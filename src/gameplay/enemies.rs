@@ -121,7 +121,7 @@ fn spawn_single_enemy(enemy: Enemy, position: Vec3, movement_angle: f32, command
         Enemy::Cannon => commands.spawn((
             Sprite::from_color(color, Vec2::new(size, size)),
             Transform::from_translation(position),
-            Velocity::new(velocity),
+            Velocity::new(velocity, velocity.length()),
             enemy,
             Spawner {
                 enemy: Enemy::Bullet,
@@ -132,7 +132,7 @@ fn spawn_single_enemy(enemy: Enemy, position: Vec3, movement_angle: f32, command
         _ => commands.spawn((
             Sprite::from_color(color, Vec2::new(size, size)),
             Transform::from_translation(position),
-            Velocity::new(velocity),
+            Velocity::new(velocity, velocity.length()),
             enemy,
         )),
     };

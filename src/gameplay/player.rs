@@ -1,5 +1,5 @@
 use crate::gameplay::enemies::Enemy;
-use crate::gameplay::movement::Velocity;
+use crate::gameplay::movement::{Acceleration, Velocity};
 use crate::world::{State, WORLD_BOUNDARY_VECTOR};
 use bevy::math::bounding::{Aabb2d, IntersectsVolume};
 use bevy::prelude::*;
@@ -36,15 +36,15 @@ fn spawn_player(mut commands: Commands, player_entity: Option<Single<Entity, Wit
             Color::srgb(0.0, 0.0, 5.0),
             Vec2::new(PLAYER_SIZE, PLAYER_SIZE),
         ),
-        Velocity::default(),
+        Velocity::new(Vec3::ZERO, PLAYER_MAX_SPEED),
+        Acceleration::default(),
         Player,
     ));
 }
 
 fn player_movement(
     keyboard_input: Res<ButtonInput<KeyCode>>,
-    mut player_velocity: Single<&mut Velocity, With<Player>>,
-    time: Res<Time>,
+    mut acceleration: Single<&mut Acceleration, With<Player>>,
 ) {
     let mut input_vector = Vec3::ZERO;
     if keyboard_input.pressed(KeyCode::ArrowLeft) {
@@ -61,15 +61,11 @@ fn player_movement(
     }
 
     input_vector = input_vector.normalize_or_zero();
+    acceleration.direction = input_vector;
     if input_vector.x.abs() > 0.0 || input_vector.y.abs() > 0.0 {
-        player_velocity.0 = player_velocity.0.lerp(
-            input_vector * PLAYER_MAX_SPEED,
-            1.0 - f32::exp(-PLAYER_ACCELERATION * time.delta_secs()),
-        );
+        acceleration.amount = PLAYER_ACCELERATION;
     } else {
-        player_velocity.0 = player_velocity
-            .0
-            .lerp(Vec3::ZERO, 1.0 - f32::exp(-PLAYER_DRAG * time.delta_secs()));
+        acceleration.amount = PLAYER_DRAG;
     }
 }
 
