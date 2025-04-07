@@ -93,15 +93,16 @@ struct SpawnTable(HashMap<Enemy, u32>);
 impl SpawnTable {
     fn draw(&self) -> Enemy {
         let totalweight = self.0.values().sum();
-        let random_weight = rand::thread_rng().gen_range(0..totalweight);
+        let randomweight = rand::thread_rng().gen_range(1..=totalweight);
         let mut weightsum = 0;
         let mut iter = self.0.iter();
         while let Some((enemy, weight)) = iter.next() {
             weightsum += *weight;
-            if weightsum > random_weight {
+            if weightsum >= randomweight {
                 return *enemy;
             }
         }
+        eprintln!("Could not draw enemy! Just spawning a standard enemy.");
         return Enemy::Standard;
     }
 }
