@@ -1,4 +1,4 @@
-use crate::gameplay::enemies::{ENEMY_SIZE, Enemy};
+use crate::gameplay::enemies::Enemy;
 use crate::gameplay::movement::Velocity;
 use crate::world::{State, WORLD_BOUNDARY_VECTOR};
 use bevy::math::bounding::{Aabb2d, IntersectsVolume};
@@ -82,16 +82,16 @@ fn clamp_player(mut player_transform: Single<&mut Transform, With<Player>>) {
 fn collide(
     mut nextstate: ResMut<NextState<State>>,
     player_transform: Single<&Transform, With<Player>>,
-    enemy_transforms: Query<&Transform, With<Enemy>>,
+    enemy_transforms: Query<(&Transform, &Enemy)>,
 ) {
-    for enemy_transform in enemy_transforms.iter() {
+    for (enemy_transform, enemy) in enemy_transforms.iter() {
         let player_aabb = Aabb2d::new(
             player_transform.translation.xy(),
             Vec2::new(0.5 * PLAYER_SIZE, 0.5 * PLAYER_SIZE),
         );
         let enemy_aabb = Aabb2d::new(
             enemy_transform.translation.xy(),
-            Vec2::new(0.5 * ENEMY_SIZE, 0.5 * ENEMY_SIZE),
+            Vec2::new(0.5 * enemy.size(), 0.5 * enemy.size()),
         );
         if player_aabb.intersects(&enemy_aabb) {
             nextstate.set(State::GameOver);

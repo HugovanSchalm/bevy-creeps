@@ -16,8 +16,8 @@ body {
 
 #gameContainer {
     aspect-ratio: 1;
-    width: 99vmin;
-    height: 99vmin;
+    width: 90vmin;
+    height: 90vmin;
     padding: 0;
     margin: 0;
 }
