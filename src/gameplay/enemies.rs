@@ -1,5 +1,5 @@
 use crate::gameplay::movement::Velocity;
-use crate::world::State;
+use crate::world::{State, WORLD_SIZE};
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use rand::Rng;
@@ -10,7 +10,8 @@ use std::time::Duration;
 
 use super::score::Score;
 
-pub const ENEMY_SPAWN_RADIUS: f32 = 400.0;
+pub const ENEMY_SPAWN_RADIUS: f32 = WORLD_SIZE + 10.0;
+pub const ENEMY_DESPAWN_RADIUS: f32 = ENEMY_SPAWN_RADIUS + 1.0;
 pub const ENEMY_BASE_SPAWN_TIME_MEAN: f32 = 1.0;
 pub const ENEMY_BASE_SPAWN_TIME_STD: f32 = 1.0;
 pub const ENEMY_DECREASE_SPAWN_TIME_MEAN: f32 = 0.01;
