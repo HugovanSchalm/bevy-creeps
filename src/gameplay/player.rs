@@ -4,7 +4,7 @@ use crate::world::{State, WORLD_BOUNDARY_VECTOR};
 use bevy::math::bounding::{Aabb2d, IntersectsVolume};
 use bevy::prelude::*;
 
-pub const PLAYER_MAX_SPEED: f32 = 200.0;
+pub const PLAYER_MAX_SPEED: f32 = 300.0;
 pub const PLAYER_ACCELERATION: f32 = 50.0;
 pub const PLAYER_DRAG: f32 = 50.0;
 pub const PLAYER_SIZE: f32 = 20.0;
