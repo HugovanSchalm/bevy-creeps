@@ -110,32 +110,30 @@ fn spawn_single_enemy(enemy: Enemy, position: Vec3, movement_angle: f32, command
     let direction = Quat::from_axis_angle(Vec3::new(0.0, 0.0, 1.0), movement_angle);
 
     let size = enemy.size();
-
     let speed = enemy.speed();
-
     let color = enemy.color();
 
     let velocity = direction.mul_vec3(-UP) * speed;
 
-    match enemy {
-        Enemy::Cannon => commands.spawn((
+    let entity = commands
+        .spawn((
             Sprite::from_color(color, Vec2::new(size, size)),
             Transform::from_translation(position),
             Velocity::new(velocity, velocity.length()),
             enemy,
-            Spawner {
+        ))
+        .id();
+
+    match enemy {
+        Enemy::Cannon => {
+            commands.entity(entity).insert(Spawner {
                 enemy: Enemy::Bullet,
                 amount: 12,
                 timer: Timer::from_seconds(2.0, TimerMode::Repeating),
-            },
-        )),
-        _ => commands.spawn((
-            Sprite::from_color(color, Vec2::new(size, size)),
-            Transform::from_translation(position),
-            Velocity::new(velocity, velocity.length()),
-            enemy,
-        )),
-    };
+            });
+        }
+        _ => {}
+    }
 }
 
 fn spawn_enemies(
