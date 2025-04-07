@@ -58,9 +58,9 @@ impl Enemy {
 
     pub fn color(&self) -> Color {
         match self {
-            Enemy::Bullet => Color::srgb(1.0, 0.5, 0.0),
-            Enemy::Cannon => Color::srgb(0.5, 0.0, 1.0),
-            _ => Color::srgb(1.0, 0.0, 0.0)
+            Enemy::Bullet => Color::srgb(5.0, 2.5, 0.0),
+            Enemy::Cannon => Color::srgb(2.5, 0.0, 5.0),
+            _ => Color::srgb(5.0, 0.0, 0.0)
         }
     }
     pub fn speed(&self) -> f32 {

@@ -33,7 +33,7 @@ fn spawn_player(mut commands: Commands, player_entity: Option<Single<Entity, Wit
 
     commands.spawn((
         Sprite::from_color(
-            Color::srgb(0.0, 0.0, 1.0),
+            Color::srgb(0.0, 0.0, 5.0),
             Vec2::new(PLAYER_SIZE, PLAYER_SIZE),
         ),
         Velocity::default(),

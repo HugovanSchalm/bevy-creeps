@@ -1,3 +1,4 @@
+use bevy::core_pipeline::bloom::Bloom;
 use bevy::{prelude::*, render::camera::ScalingMode};
 use bevy_creeps::gameplay::GameplayPlugin;
 use bevy_creeps::ui::UIPlugin;
@@ -14,10 +15,11 @@ fn main() {
             }),
             ..Default::default()
         }))
+        .insert_resource(ClearColor(Color::BLACK))
         .add_plugins(UIPlugin)
         .add_plugins(GameplayPlugin)
         .init_state::<State>()
-        .add_systems(Startup, (setup_camera,))
+        .add_systems(Startup, setup_camera)
         .add_systems(Update, check_restart.run_if(in_state(State::GameOver)))
         .run();
 }
@@ -28,7 +30,15 @@ fn setup_camera(mut commands: Commands) {
         min_width: WORLD_SIZE,
         min_height: WORLD_SIZE,
     };
-    commands.spawn((Camera2d, projection));
+    commands.spawn((
+        Camera2d,
+        Camera {
+            hdr: true,
+            ..Default::default()
+        },
+        Bloom::NATURAL,
+        projection
+    ));
 }
 
 fn check_restart(
