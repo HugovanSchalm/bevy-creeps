@@ -34,7 +34,12 @@ impl Plugin for EnemyPlugin {
         .insert_resource(spawntable)
         .add_systems(
             FixedUpdate,
-            (spawn_enemies, despawn_out_of_bounds_enemies, handle_spawners).run_if(in_state(State::Playing)),
+            (
+                spawn_enemies,
+                despawn_out_of_bounds_enemies,
+                handle_spawners,
+            )
+                .run_if(in_state(State::Playing)),
         )
         .add_systems(OnEnter(State::Playing), despawn_all_enemies);
     }
@@ -52,7 +57,7 @@ impl Enemy {
         match self {
             Enemy::Bullet => 10.0,
             Enemy::Cannon => 40.0,
-            _ => 20.0
+            _ => 20.0,
         }
     }
 
@@ -60,14 +65,14 @@ impl Enemy {
         match self {
             Enemy::Bullet => Color::srgb(5.0, 2.5, 0.0),
             Enemy::Cannon => Color::srgb(2.5, 0.0, 5.0),
-            _ => Color::srgb(5.0, 0.0, 0.0)
+            _ => Color::srgb(5.0, 0.0, 0.0),
         }
     }
     pub fn speed(&self) -> f32 {
         match self {
             Enemy::Bullet => 450.0,
             Enemy::Cannon => 100.0,
-            _ => 300.0
+            _ => 300.0,
         }
     }
 }
@@ -95,18 +100,13 @@ impl SpawnTable {
             weightsum += *weight;
             if weightsum > random_weight {
                 return *enemy;
-            }       
-        };
+            }
+        }
         return Enemy::Standard;
     }
 }
 
-fn spawn_single_enemy(
-    enemy: Enemy,
-    position: Vec3,
-    movement_angle: f32,
-    commands: &mut Commands,
-) {
+fn spawn_single_enemy(enemy: Enemy, position: Vec3, movement_angle: f32, commands: &mut Commands) {
     let direction = Quat::from_axis_angle(Vec3::new(0.0, 0.0, 1.0), movement_angle);
 
     let size = enemy.size();
@@ -119,28 +119,22 @@ fn spawn_single_enemy(
 
     match enemy {
         Enemy::Cannon => commands.spawn((
-            Sprite::from_color(
-                color,
-                Vec2::new(size, size),
-            ),
+            Sprite::from_color(color, Vec2::new(size, size)),
             Transform::from_translation(position),
             Velocity::new(velocity),
             enemy,
             Spawner {
                 enemy: Enemy::Bullet,
                 amount: 12,
-                timer: Timer::from_seconds(2.0, TimerMode::Repeating)
+                timer: Timer::from_seconds(2.0, TimerMode::Repeating),
             },
         )),
         _ => commands.spawn((
-            Sprite::from_color(
-                color,
-                Vec2::new(size, size),
-            ),
+            Sprite::from_color(color, Vec2::new(size, size)),
             Transform::from_translation(position),
             Velocity::new(velocity),
             enemy,
-        ))
+        )),
     };
 }
 
@@ -185,7 +179,12 @@ fn handle_spawners(
         if spawner.timer.tick(time.delta()).finished() {
             for i in 0..spawner.amount {
                 let movement_angle = i as f32 * (TAU / spawner.amount as f32);
-                spawn_single_enemy(spawner.enemy, transform.translation, movement_angle, &mut commands);
+                spawn_single_enemy(
+                    spawner.enemy,
+                    transform.translation,
+                    movement_angle,
+                    &mut commands,
+                );
             }
         }
     })

@@ -37,7 +37,7 @@ fn setup_camera(mut commands: Commands) {
             ..Default::default()
         },
         Bloom::NATURAL,
-        projection
+        projection,
     ));
 }
 
