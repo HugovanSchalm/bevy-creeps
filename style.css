@@ -1,28 +1,25 @@
-body {
-    background-color: black;
+* {
     margin: 0;
     padding: 0;
+}
+
+body {
+    background-color: #202020;
 }
 
 #screenContainer {
     display: flex;
     justify-content: center;
-    align-items: center;
-    width: 100vw;
-    height: 100vh;
-    padding: 0;
-    margin: 0;
 }
 
 #gameContainer {
     aspect-ratio: 1;
-    width: 90vmin;
-    height: 90vmin;
-    padding: 0;
-    margin: 0;
-    outline: 2px solid grey;
+    width: 100vmin;
+    height: 100vmin;
+    vertical-align: top;
 }
 
 canvas:focus {
     outline: none;
+    vertical-align: top;
 }
