@@ -45,6 +45,10 @@ fn create_game_over_ui(mut commands: Commands, score: Res<Score>) {
 
             parent
                 .spawn(Node::default())
+                .with_child(Text::new("Press <R> to restart"));
+
+            parent
+                .spawn(Node::default())
                 .with_child(Text::new(format!("Score: {}", score.0)));
         });
 }
