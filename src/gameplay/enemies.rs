@@ -97,7 +97,7 @@ struct SpawnParameters {
     min_time_between_spawns: Duration,
     probability_spawn_another: f64,
     max_probability_spawn_another: f64,
-    max_spawns: usize,
+    max_spawns: u32,
     spawn_table: HashMap<Enemy, u32>,
 }
 
@@ -128,7 +128,7 @@ impl Default for SpawnParameters {
             max_probability_spawn_another: 0.8,
             spawn_table: HashMap::new(),
         };
-        spawn_parameters.spawn_table.insert(Enemy::Standard, 10);
+        spawn_parameters.spawn_table.insert(Enemy::Standard, 25);
         spawn_parameters
     }
 }
@@ -163,7 +163,7 @@ fn spawn_single_enemy(enemy: Enemy, position: Vec3, direction: Vec3, commands: &
         Enemy::Rocket => {
             commands.entity(entity).insert((
                 HeatSeeker {
-                    alive_timer: Timer::new(Duration::from_secs(3), TimerMode::Once),
+                    alive_timer: Timer::new(Duration::from_secs(5), TimerMode::Once),
                 },
                 Acceleration {
                     direction: Vec3::ZERO,
@@ -297,13 +297,17 @@ fn increase_difficulty(
         spawn_parameters.time_between_spawns = spawn_parameters
             .min_time_between_spawns
             .max(spawn_parameters.time_between_spawns - Duration::from_millis(10));
-        if (new_score % 10) == 0 {
-            spawn_parameters.max_spawns += 1;
-        }
+
+        spawn_parameters.max_spawns = 1 + new_score / 30;
 
         spawn_parameters
             .spawn_table
             .insert(Enemy::Cannon, new_score / 10);
+
+        println!(
+            "Cannon weight: {}",
+            spawn_parameters.spawn_table.get(&Enemy::Cannon).unwrap()
+        );
 
         spawn_parameters
             .spawn_table
