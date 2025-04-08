@@ -4,35 +4,25 @@ use crate::world::{State, WORLD_SIZE};
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use rand::Rng;
-use rand::distributions::Distribution;
-use statrs::distribution::Normal;
 use std::f32::consts::TAU;
 use std::time::Duration;
 
-use super::score::Score;
+use super::score::ScoreIncreasedEvent;
 
 pub const ENEMY_SPAWN_RADIUS: f32 = WORLD_SIZE + 10.0;
 pub const ENEMY_DESPAWN_RADIUS: f32 = ENEMY_SPAWN_RADIUS + 1.0;
-pub const ENEMY_BASE_SPAWN_TIME_MEAN: f32 = 1.0;
-pub const ENEMY_BASE_SPAWN_TIME_STD: f32 = 1.0;
-pub const ENEMY_DECREASE_SPAWN_TIME_MEAN: f32 = 0.01;
-pub const ENEMY_DECREASE_SPAWN_TIME_STD: f32 = 0.01;
-pub const ENEMY_MIN_SPAWN_TIME: f32 = 0.01;
 
 const UP: Vec3 = Vec3::new(0.0, 1.0, 0.0);
 pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
-        let mut spawntable = SpawnTable(HashMap::new());
-        spawntable.0.insert(Enemy::Standard, 10);
-        spawntable.0.insert(Enemy::Cannon, 1);
-        spawntable.0.insert(Enemy::RocketShip, 1);
+        let initial_time_between_spawns = Duration::from_secs_f32(2.0);
         app.insert_resource(EnemySpawnTimer(Timer::new(
-            Duration::from_secs_f32(2.0),
+            initial_time_between_spawns,
             TimerMode::Repeating,
         )))
-        .insert_resource(spawntable)
+        .insert_resource(SpawnParameters::default())
         .add_systems(
             FixedUpdate,
             (
@@ -41,10 +31,14 @@ impl Plugin for EnemyPlugin {
                 handle_shooting,
                 handle_heatseeker_acceleration,
                 handle_heatseeker_destruction,
+                increase_difficulty,
             )
                 .run_if(in_state(State::Playing)),
         )
-        .add_systems(OnEnter(State::Playing), despawn_all_enemies);
+        .add_systems(
+            OnEnter(State::Playing),
+            (despawn_all_enemies, reset_difficulty),
+        );
     }
 }
 
@@ -96,14 +90,23 @@ struct HeatSeeker {
 struct EnemySpawnTimer(Timer);
 
 #[derive(Resource)]
-struct SpawnTable(HashMap<Enemy, u32>);
+/// Parameters for generic spawning (so not shooting).
+/// This is what determines the difficulty along with [SpawnTable].
+struct SpawnParameters {
+    time_between_spawns: Duration,
+    min_time_between_spawns: Duration,
+    probability_spawn_another: f64,
+    max_probability_spawn_another: f64,
+    max_spawns: usize,
+    spawn_table: HashMap<Enemy, u32>,
+}
 
-impl SpawnTable {
-    fn draw(&self) -> Enemy {
-        let totalweight = self.0.values().sum();
+impl SpawnParameters {
+    fn draw_enemy(&self) -> Enemy {
+        let totalweight = self.spawn_table.values().sum();
         let randomweight = rand::thread_rng().gen_range(1..=totalweight);
         let mut weightsum = 0;
-        let mut iter = self.0.iter();
+        let mut iter = self.spawn_table.iter();
         while let Some((enemy, weight)) = iter.next() {
             weightsum += *weight;
             if weightsum >= randomweight {
@@ -112,6 +115,21 @@ impl SpawnTable {
         }
         eprintln!("Could not draw enemy! Just spawning a standard enemy.");
         return Enemy::Standard;
+    }
+}
+
+impl Default for SpawnParameters {
+    fn default() -> Self {
+        let mut spawn_parameters = SpawnParameters {
+            time_between_spawns: Duration::from_secs(2),
+            min_time_between_spawns: Duration::from_millis(300),
+            max_spawns: 1,
+            probability_spawn_another: 0.0,
+            max_probability_spawn_another: 0.8,
+            spawn_table: HashMap::new(),
+        };
+        spawn_parameters.spawn_table.insert(Enemy::Standard, 10);
+        spawn_parameters
     }
 }
 
@@ -160,33 +178,37 @@ fn spawn_single_enemy(enemy: Enemy, position: Vec3, direction: Vec3, commands: &
 fn spawn_enemies(
     mut commands: Commands,
     mut timer: ResMut<EnemySpawnTimer>,
-    spawntable: Res<SpawnTable>,
+    spawn_parameters: Res<SpawnParameters>,
     time: Res<Time>,
-    score: Res<Score>,
 ) {
     if timer.0.tick(time.delta()).finished() {
         let mut random = rand::thread_rng();
-        let score = score.0 as f32;
 
-        let spawn_angle: f32 = random.gen_range(0.0..TAU);
-        let position = Quat::from_axis_angle(Vec3::new(0.0, 0.0, 1.0), spawn_angle).mul_vec3(UP)
-            * ENEMY_SPAWN_RADIUS;
+        let mut spawned = 0;
+        while spawned < spawn_parameters.max_spawns {
+            let spawn_angle: f32 = random.gen_range(0.0..TAU);
+            let position = Quat::from_axis_angle(Vec3::new(0.0, 0.0, 1.0), spawn_angle)
+                .mul_vec3(UP)
+                * ENEMY_SPAWN_RADIUS;
 
-        let movement_angle = spawn_angle + random.gen_range(-0.3..0.3);
-        let direction = Quat::from_axis_angle(Vec3::Z, movement_angle).mul_vec3(Vec3::NEG_Y);
+            let movement_angle = spawn_angle + random.gen_range(-0.3..0.3);
+            let direction = Quat::from_axis_angle(Vec3::Z, movement_angle).mul_vec3(Vec3::NEG_Y);
 
-        spawn_single_enemy(spawntable.draw(), position, direction, &mut commands);
+            spawn_single_enemy(
+                spawn_parameters.draw_enemy(),
+                position,
+                direction,
+                &mut commands,
+            );
 
-        let timer_distribution = Normal::new(
-            (ENEMY_BASE_SPAWN_TIME_MEAN + score * ENEMY_DECREASE_SPAWN_TIME_MEAN) as f64,
-            (ENEMY_BASE_SPAWN_TIME_STD + score * ENEMY_DECREASE_SPAWN_TIME_STD) as f64,
-        )
-        .unwrap();
-        timer.0.set_duration(Duration::from_secs_f64(
-            timer_distribution
-                .sample(&mut rand::thread_rng())
-                .max(ENEMY_MIN_SPAWN_TIME as f64),
-        ));
+            if random.gen_bool(1.0 - spawn_parameters.probability_spawn_another) {
+                break;
+            }
+
+            spawned += 1;
+        }
+
+        timer.0.set_duration(spawn_parameters.time_between_spawns);
     }
 }
 
@@ -261,6 +283,36 @@ fn handle_heatseeker_destruction(
             commands.entity(entity).despawn();
         }
     }
+}
+
+fn increase_difficulty(
+    mut spawn_parameters: ResMut<SpawnParameters>,
+    mut score_increased_event: EventReader<ScoreIncreasedEvent>,
+) {
+    for event in score_increased_event.read() {
+        let new_score = event.get_new_score();
+        spawn_parameters.probability_spawn_another = spawn_parameters
+            .max_probability_spawn_another
+            .min(spawn_parameters.probability_spawn_another + 0.03);
+        spawn_parameters.time_between_spawns = spawn_parameters
+            .min_time_between_spawns
+            .max(spawn_parameters.time_between_spawns - Duration::from_millis(10));
+        if (new_score % 10) == 0 {
+            spawn_parameters.max_spawns += 1;
+        }
+
+        spawn_parameters
+            .spawn_table
+            .insert(Enemy::Cannon, new_score / 10);
+
+        spawn_parameters
+            .spawn_table
+            .insert(Enemy::RocketShip, new_score / 15);
+    }
+}
+
+fn reset_difficulty(mut spawn_parameters: ResMut<SpawnParameters>) {
+    *spawn_parameters = SpawnParameters::default();
 }
 
 fn despawn_out_of_bounds_enemies(

@@ -11,6 +11,7 @@ impl Plugin for ScorePlugin {
             TimerMode::Repeating,
         )))
         .insert_resource(Score(0))
+        .add_event::<ScoreIncreasedEvent>()
         .add_systems(FixedUpdate, update_score.run_if(in_state(State::Playing)))
         .add_systems(OnEnter(State::Playing), reset_score);
     }
@@ -22,13 +23,28 @@ struct ScoreTimer(Timer);
 #[derive(Resource)]
 pub struct Score(pub u32);
 
+#[derive(Event)]
+pub struct ScoreIncreasedEvent(u32);
+
+impl ScoreIncreasedEvent {
+    pub fn get_new_score(&self) -> u32 {
+        self.0
+    }
+}
+
 fn reset_score(mut score: ResMut<Score>, mut timer: ResMut<ScoreTimer>) {
     score.0 = 0;
     timer.0.reset();
 }
 
-fn update_score(mut score_timer: ResMut<ScoreTimer>, mut score: ResMut<Score>, time: Res<Time>) {
+fn update_score(
+    mut score_event: EventWriter<ScoreIncreasedEvent>,
+    mut score_timer: ResMut<ScoreTimer>,
+    mut score: ResMut<Score>,
+    time: Res<Time>,
+) {
     if score_timer.0.tick(time.delta()).finished() {
         score.0 += 1;
+        score_event.send(ScoreIncreasedEvent(score.0));
     }
 }
