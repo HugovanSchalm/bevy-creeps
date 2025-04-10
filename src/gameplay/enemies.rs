@@ -304,11 +304,6 @@ fn increase_difficulty(
             .spawn_table
             .insert(Enemy::Cannon, new_score / 10);
 
-        println!(
-            "Cannon weight: {}",
-            spawn_parameters.spawn_table.get(&Enemy::Cannon).unwrap()
-        );
-
         spawn_parameters
             .spawn_table
             .insert(Enemy::RocketShip, new_score / 15);
